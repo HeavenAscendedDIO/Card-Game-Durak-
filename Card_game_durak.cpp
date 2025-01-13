@@ -21,8 +21,9 @@ struct Hand
 Cards deck36[9];
 Cards deck52[13];
 char suit[4] = { '\3', '\4', '\6', '\5' };
-int fall_array_id = 0, bot_def_id, desk_attack_id, drop_card_user = 6, drop_card_bot = 6, full_deck, bot_atk_id, newSize_bot = 6, newSize_user = 6;
-bool took = false, is_game_on = true, user_turn;
+int fall_array_id = 0, bot_def_id, desk_attack_id, drop_card_user = 6, drop_card_bot = 6, full_deck, bot_atk_id, newSize_bot = 6, newSize_user = 6, taken_card = 0, bot_number_card = 0;
+bool took = false, is_game_on = true, user_turn, user_win = true, bot_attack_true = true;
+bool took_user = false, lol = false;
 
 //Карты, вышедшие из игры
 char fall_array[52][2];
@@ -62,18 +63,20 @@ void CreateDeck52()
 bool Menu()
 {
     int choice;
-    cout << "██████╗░██╗░░░██╗██████╗░░█████╗░██╗░░██╗\n██╔══██╗██║░░░██║██╔══██╗██╔══██╗██║░██╔╝\n██║░░██║██║░░░██║██████╔╝███████║█████═╝░\n██║░░██║██║░░░██║██╔══██╗██╔══██║██╔═██╗░\n██████╔╝╚██████╔╝██║░░██║██║░░██║██║░╚██╗\n╚═════╝░░╚═════╝░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝" << endl;
+    cout << "*@@@***@@m  *@@@*   *@@@**@@@***@@m        @@      *@@@@* *@@@*\n  @@    *@@m @@       @    @@   *@@m      m@@m       @@   m@*\n  @@     *@@ @@       @    @@   m@@      m@*@@!      @@ m@*\n  @@      @@ @@       @    !@@@@@@      m@   @@      @@@@@m\n  @@     m@@ @@       @    !@  @@m      @@    @@     !@  @@!\n  @@    m@!@ @@       @    !@   *!@    @@      @@    !@   *!@m\n  @@     @@  @@       @   !@     @@    @@@@@@@@@@    @@    !@@\n  @@    @@:  @@     !@    @@    !@@   @@       @@   @@     :@@@\n*@@@*@*@       @ @ @!    @@      @@   @@       @@   @@      @ @\n" << endl;
     while (true)
     {
-        cout << "Выберите сложность! \n1 - 36 карт \n2 - 52 карты \nВаш выбор -------> ";
+        cout << "Выберите сложность! \n1 - 36 карт \n2 - 52 карты \n\nВаш выбор -------> ";
         cin >> choice;
 
         if (choice == 1) {
+            system("cls");
             cout << "\6 \3 Да начнётся игра! \5 \4" << endl << endl;
             return true;
         }
 
         else if (choice == 2) {
+            system("cls");
             cout << "\6 \3 Да начнётся игра! \5 \4" << endl << endl;
             return false;
         }
@@ -137,6 +140,10 @@ void Selection_card(Hand hands[6], bool easy_mode, char trump_suit, int drop_car
                 hands[i].c = card_hand;
                 hands[i].s = suit_hand;
                 hands[i].p = power_hand;
+                if (lol)
+                {
+                    bot_number_card++;
+                }
                 if (trump_suit == hands[i].s)
                 {
                     hands[i].p += (easy_mode) ? 9 : 13;
@@ -242,52 +249,154 @@ void BotChooseCard(Hand bot_hands[6], Hand user_hands[6], int card_id, char trum
         return;
     }
 
-    cout << "Бот покрылся: " << bot_hands[bot_def_id].c << " " << bot_hands[bot_def_id].s << endl;
+    int r_timer = rand() % 6;
+    Sleep(r_timer * 1000);
+
+    cout << "Бот покрылся: " << bot_hands[bot_def_id].c << " " << bot_hands[bot_def_id].s << endl << endl;
     desk_attack[desk_attack_id].c = bot_hands[bot_def_id].c;
     desk_attack[desk_attack_id].s = bot_hands[bot_def_id].s;
     desk_attack[desk_attack_id].p = bot_hands[bot_def_id].p;
     desk_attack_id++;
     drop_card_bot++;
+    bot_number_card--;
 
     Card_move(bot_hand, bot_def_id, drop_card_bot, newSize_bot);
+
 }
 
-void BotAttack(Hand hands[6])
+void BotAttack()
 {
-    int bot_low_attack = hands[0].p;
+    if (drop_card_bot > 0)
+    {
+        int coincidence_bot = 0;
+        for (int i = 0; i < 13; i++)
+        {
+            for (int j = 0; j < newSize_bot; j++)
+            {
+                if (bot_hand[j].c == desk_attack[i].c and bot_hand[j].c != ' ')
+                {
+                    coincidence_bot++;
+                    bot_atk_id = j;
+                    break;
+                }
+            }
+            if (coincidence_bot > 0)
+            {
+                int r_timer = rand() % 6;
+                Sleep(r_timer * 1000);
+
+                cout << "Бот сходил: " << bot_hand[bot_atk_id].c << " " << bot_hand[bot_atk_id].s << endl << endl;
+                desk_attack[desk_attack_id].c = bot_hand[bot_atk_id].c;
+                desk_attack[desk_attack_id].s = bot_hand[bot_atk_id].s;
+                desk_attack[desk_attack_id].p = bot_hand[bot_atk_id].p;
+                desk_attack_id++;
+                drop_card_bot++;
+                bot_number_card--;
+
+                cout << "Кол-во карт бота: " << bot_number_card << endl;
+                cout << "Ваши карты: " << endl;
+                for (int i = 0; i < newSize_user; i++) {
+                    cout << i + 1 << " - " << user_hand[i].c << " " << user_hand[i].s << " " << endl;
+                }
+
+                return;
+            }
+        }
+
+        if (coincidence_bot == 0)
+        {
+            int r_timer = rand() % 6;
+            Sleep(r_timer * 1000);
+
+            system("cls");
+            cout << "Бито!\n" << endl;
+            bot_attack_true = false;
+            return;
+        }
+    }
+    int bot_low_attack = 0;
+
+    for (int i = 0; i < newSize_bot; i++)
+    {
+        if (bot_hand[i].p != 0)
+        {
+            bot_low_attack = bot_hand[i].p;
+            bot_atk_id = i;
+            break;
+        }
+    }
+
     for (int i = 0; i < newSize_bot; i++) {
-        if (bot_low_attack > hands[i].p) {
-            bot_low_attack = hands[i].p;
+        if (bot_low_attack > bot_hand[i].p and bot_hand[i].p != 0 and bot_hand[i].s != ' ') {
+            bot_low_attack = bot_hand[i].p;
             bot_atk_id = i;
         }
     }
 
-    cout << "Бот сходил: " << hands[bot_atk_id].c << " " << hands[bot_atk_id].s << endl;
-    desk_attack[desk_attack_id].c = hands[bot_atk_id].c;
-    desk_attack[desk_attack_id].s = hands[bot_atk_id].s;
-    desk_attack[desk_attack_id].p = hands[bot_atk_id].p;
+    if (bot_low_attack == 0 or bot_hand[bot_atk_id].s == ' ') {
+        cout << "У бота закончились карты!" << endl;
+        if (full_deck <= 0) {
+            user_win = false;
+            is_game_on = false;
+            user_turn = false;
+        }
+        return;
+    }
+    int r_timer = rand() % 6;
+    Sleep(r_timer * 1000);
+
+    cout << "Бот сходил: " << bot_hand[bot_atk_id].c << " " << bot_hand[bot_atk_id].s << endl;
+    desk_attack[desk_attack_id].c = bot_hand[bot_atk_id].c;
+    desk_attack[desk_attack_id].s = bot_hand[bot_atk_id].s;
+    desk_attack[desk_attack_id].p = bot_hand[bot_atk_id].p;
     desk_attack_id++;
     drop_card_bot++;
+    bot_number_card--;
 
 }
 
 void UserDefence(char trump_suit)
 {
     int user_def;
-    cout << "0 - Взять карты со стола \nВыберите карту, которой вы будете крыться... ";
+    cout << "\n0 - Взять карты со стола \nВыберите карту, которой вы будете крыться ---> ";
     cin >> user_def;
 
     if (user_def == 0)
     {
-        cout << "Вы берете карты!";
+        system("cls");
+        cout << "Вы берете карты!\n" << endl;
+        int act_user = newSize_user - drop_card_user;
+        newSize_user = act_user + desk_attack_id;
+        Hand* newpointer_user = new Hand[newSize_user];
+
+        for (int i = 0, j = 0; i < newSize_user; i++)
+        {
+            if (i < act_user and user_hand[i].s != ' ') {
+                newpointer_user[i].c = user_hand[i].c;
+                newpointer_user[i].s = user_hand[i].s;
+                newpointer_user[i].p = user_hand[i].p;
+            }
+            else {
+                newpointer_user[i].c = desk_attack[j].c;
+                newpointer_user[i].s = desk_attack[j].s;
+                newpointer_user[i].p = desk_attack[j].p;
+                j++;
+            }
+        }
+
+        delete[] user_hand;
+        user_hand = newpointer_user;
+
         user_turn = false;
+        took_user = true;
         Card_move(bot_hand, bot_atk_id, drop_card_bot, newSize_bot);
+        taken_card += act_user;
         return;
     }
 
-    if (user_hand[user_def - 1].p > bot_hand[bot_atk_id].p and user_hand[user_def - 1].s == bot_hand[bot_atk_id].s or user_hand[user_def - 1].s == trump_suit)
+    if (user_hand[user_def - 1].p > bot_hand[bot_atk_id].p and (user_hand[user_def - 1].s == bot_hand[bot_atk_id].s or user_hand[user_def - 1].s == trump_suit))
     {
-        cout << "Вы сходили: " << user_hand[user_def - 1].c << " " << user_hand[user_def - 1].s << endl;
+        cout << "\nВы сходили: " << user_hand[user_def - 1].c << " " << user_hand[user_def - 1].s << endl;
         desk_attack[desk_attack_id].c = user_hand[user_def - 1].c;
         desk_attack[desk_attack_id].s = user_hand[user_def - 1].s;
         desk_attack[desk_attack_id].p = user_hand[user_def - 1].p;
@@ -298,11 +407,6 @@ void UserDefence(char trump_suit)
 
         Card_move(user_hand, user_def - 1, drop_card_user, newSize_user);
         Card_move(bot_hand, bot_atk_id, drop_card_bot, newSize_bot);
-
-        cout << "Карты бота: " << endl;
-        for (int i = 0; i < newSize_bot; i++) {
-            cout << i + 1 << " - " << bot_hand[i].c << " " << bot_hand[i].s << endl;
-        }
     }
 
     else {
@@ -321,25 +425,62 @@ void Game(bool easy_mode)
 
     //Проверка хода
     user_turn = UserTurn(trump_suit);
+    lol = true;
+    Selection_card(bot_hand, easy_mode, trump_suit, drop_card_bot, newSize_bot);
+    lol = false;
 
-    //УДАЛИ ЭТО
-    //user_turn = true;
+    Selection_card(user_hand, easy_mode, trump_suit, drop_card_user, newSize_user);
 
     while (is_game_on)
     {
+        if (newSize_bot > 6)
+        {
+            //Удаление лишних строк
+            int _bot = newSize_bot;
+            for (int i = 0; i < _bot; i++)
+            {
+                if (bot_hand[i].s == ' ' and newSize_bot > 6)
+                {
+                    newSize_bot--;
+                    drop_card_bot--;
+                }
+            }
+        }
+
+        if (newSize_user > 6)
+        {
+            //Удаление лишних строк
+            int _user = newSize_user;
+            for (int i = 0; i < _user; i++)
+            {
+                if (user_hand[i].s == ' ' and newSize_user > 6)
+                {
+                    newSize_user--;
+                    drop_card_user--;
+                }
+            }
+        }
+
+
         cout << "Козырная масть: " << trump_suit << endl;
-        if (!took) {
+        if (!took and newSize_bot <= 6 and bot_hand[5].s == ' ') {
             //Подбор карт для бота
+            lol = true;
             Selection_card(bot_hand, easy_mode, trump_suit, drop_card_bot, newSize_bot);
+            lol = false;
         }
         else
         {
             took = false;
         }
         //Подбор карт для игрока
-        Selection_card(user_hand, easy_mode, trump_suit, drop_card_user, newSize_user);
+        if (newSize_user <= 6 and user_hand[5].s == ' ')
+        {
+            Selection_card(user_hand, easy_mode, trump_suit, drop_card_user, newSize_user);
+        }
         cout << "Карт в колоде: " << full_deck << endl;
-        cout << "Ваши карты: " << endl;
+        cout << "Кол-во карт бота: " << bot_number_card << endl;
+        cout << "\nВаши карты: " << endl;
 
         drop_card_user = 0;
         drop_card_bot = 0;
@@ -347,32 +488,47 @@ void Game(bool easy_mode)
 
         for (int i = 0; i < newSize_user; i++)
         {
-            cout << i + 1 << " - " << user_hand[i].c << " " << user_hand[i].s << endl;
+            cout << i + 1 << " - " << user_hand[i].c << " " << user_hand[i].s << " " << endl;
         }
 
         if (user_turn) {
             cout << "Ход за игроком!" << endl;
             int card_id;
 
+
             //Цикл подкидывания карт
-            while (drop_card_user != newSize_user)
+            while (drop_card_user != 6 or drop_card_user != newSize_user)
             {
                 int coincidence = 0;
+
+                if (full_deck == 0) {
+                    bool hasnt_card = true;
+                    for (int i = 0; i < newSize_user; i++) {
+                        if (user_hand[i].s != ' ') {
+                            hasnt_card = false;
+                            break;
+                        }
+                    }
+                    if (hasnt_card) {
+                        user_win = true;
+                        return;
+                    }
+                }
 
                 if (drop_card_user >= 1) {
                     cout << "0 - Бито" << endl;
                 }
-                cout << "Выберите карту, которой вы будете ходить... ";
+                cout << "Выберите карту, которой вы будете ходить ---> ";
                 cin >> card_id;
                 if (card_id == 0 and drop_card_user >= 1) {
                     system("cls");
-                    cout << "Бито!" << endl;
+                    cout << "Бито!\n" << endl;
 
                     //Ход переходит боту
                     user_turn = false;
                     break;
                 }
-                if ((user_hand[card_id - 1].s != '\3' and user_hand[card_id - 1].s != '\4' and user_hand[card_id - 1].s != '\6' and user_hand[card_id - 1].s != '\5') or card_id < 1 or card_id > 6) {
+                if ((user_hand[card_id - 1].s != '\3' and user_hand[card_id - 1].s != '\4' and user_hand[card_id - 1].s != '\6' and user_hand[card_id - 1].s != '\5') or card_id < 1 or card_id > newSize_user) {
                     cout << "Карта отсутствует." << endl;
                     continue;
                 }
@@ -387,7 +543,7 @@ void Game(bool easy_mode)
                     continue;
                 }
 
-                cout << "Вы сходили: " << user_hand[card_id - 1].c << " " << user_hand[card_id - 1].s << endl;
+                cout << "\nВы сходили: " << user_hand[card_id - 1].c << " " << user_hand[card_id - 1].s << endl;
                 desk_attack[desk_attack_id].c = user_hand[card_id - 1].c;
                 desk_attack[desk_attack_id].s = user_hand[card_id - 1].s;
                 desk_attack[desk_attack_id].p = user_hand[card_id - 1].p;
@@ -400,21 +556,17 @@ void Game(bool easy_mode)
                 //Вызов функции по сдвигу
                 Card_move(user_hand, card_id - 1, drop_card_user, newSize_user);
 
-                for (int i = 0; i < 6; i++) {
+                cout << "Кол-во карт бота: " << bot_number_card << endl;
+                cout << "Ваши карты: " << endl;
+                for (int i = 0; i < newSize_user; i++) {
                     cout << i + 1 << " - " << user_hand[i].c << " " << user_hand[i].s << endl;
                 }
 
-                /*cout << "Карты на столе ";
-                for (int i = 0; i < 13; i++){
-                    cout << desk_attack[i].c << " ";
-                }
-                cout << endl;*/
 
                 if (took) {
                     system("cls");
                     cout << "Бот не может покрыться." << endl;
-                    cout << "Поэтому он берет карты со стола!" << endl;
-                    cout << "Карты бота: " << endl;
+                    cout << "Поэтому он берет карты со стола!\n" << endl;
 
                     int act = newSize_bot - drop_card_bot;
                     newSize_bot = act + desk_attack_id;
@@ -422,7 +574,7 @@ void Game(bool easy_mode)
 
                     for (int i = 0, j = 0; i < newSize_bot; i++)
                     {
-                        if (i < act) {
+                        if (i < act and bot_hand[i].s != ' ') {
                             newpointer[i].c = bot_hand[i].c;
                             newpointer[i].s = bot_hand[i].s;
                             newpointer[i].p = bot_hand[i].p;
@@ -438,10 +590,8 @@ void Game(bool easy_mode)
                     delete[] bot_hand;
                     bot_hand = newpointer;
 
-                    for (int i = 0; i < newSize_bot; i++) {
-                        cout << i + 1 << " - " << bot_hand[i].c << " " << bot_hand[i].s << endl;
-                    }
                     user_turn = true;
+                    bot_number_card += act;
                     break;
                 }
             }
@@ -456,9 +606,31 @@ void Game(bool easy_mode)
         }
         else if (!user_turn)
         {
-            cout << "Ход за ботом!" << endl;
-            BotAttack(bot_hand);
-            UserDefence(trump_suit);
+            cout << "\nХод за ботом!" << endl;
+            while (drop_card_bot != 6 or drop_card_bot != newSize_bot)
+            {
+                BotAttack();
+                if (!bot_attack_true)
+                {
+                    bot_attack_true = true;
+                    break;
+                }
+                UserDefence(trump_suit);
+                if (took_user)
+                {
+                    took_user = false;
+                    break;
+                }
+            }
+
+            //Уничтожение карт в desk_attack
+            for (int i = 0; i < 13; i++)
+            {
+                desk_attack[i].c = ' ';
+                desk_attack[i].s = ' ';
+                desk_attack[i].p = 0;
+            }
+
         }
     }
 }
@@ -485,10 +657,42 @@ int main()
 
     Game(easy_mode);
     cout << endl;
-    for (int i = 0; i < 52; i++)
-    {
-        cout << fall_array[i][0] << " " << fall_array[i][1] << endl;
+
+    if (user_win) {
+        system("cls");
+        cout << "ПОБЕДИЛ ИГРОК!" << endl;
+        cout << "Взято карт: " << taken_card << endl;
+        if (taken_card <= 1)
+        {
+            cout << "Ваш ранг: P!\nОтличная работа!";
+        }
+        else if (taken_card <= 3)
+        {
+            cout << "Ваш ранг: S!";
+        }
+        else if (taken_card <= 6)
+        {
+            cout << "Ваш ранг: A";
+        }
+        else if (taken_card <= 10)
+        {
+            cout << "Ваш ранг: B";
+        }
+        else if (taken_card <= 20)
+        {
+            cout << "Ваш ранг: C";
+        }
+        else if (taken_card > 20)
+        {
+            cout << "Ваш ранг: D";
+        }
     }
+    else if (!user_win) {
+        system("cls");
+        cout << "ПОБЕДИЛ БОТ!" << endl;
+        cout << "Ваш ранг: F";
+    }
+
     delete[] bot_hand;
     delete[] user_hand;
     return 0;
